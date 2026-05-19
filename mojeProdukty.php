@@ -3,7 +3,7 @@ include "db.php";
 
 if (!isset($_SESSION['uzytkownik_id'])) {
     header("Location: login.php");
-    exti();
+    exit();
 }
 
 $and = "";
@@ -66,29 +66,42 @@ if($_POST){
             $query = "SELECT produkty.id, produkty.nazwa, produkty.opis, produkty.cena, produkty.status, produkty.uzytkownik_id, uzytkownicy.login 
                 FROM produkty 
                 INNER JOIN uzytkownicy ON produkty.uzytkownik_id = uzytkownicy.id 
-                WHERE produkty.uzytkownik_id = '$userId'"
+                WHERE produkty.uzytkownik_id = ?"
                 .$and
                 ." ORDER BY produkty.id DESC";
 
-            $result = mysqli_query($conn, $query);
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
             while($row = mysqli_fetch_array($result)){
                 $statusTekst = ($row['status'] == 'dostepny') ? "Dostępny" : "Sprzedany";
 
                 echo "<div class='produkt'>";
+
                 echo "<h2>" .$row['nazwa'] ."</h2>";
                 echo "<p>" .$row['opis'] ."</p>";
                 echo "<h3 class='cena'>" . $row['cena'] ." zł</h3>";
                 echo "<span class='status " .$row['status'] ."'>" .$statusTekst ."</span><br><br>";
+
                 echo "<div class='buttonGrid'>";
+
                 if($row['status'] == 'dostepny'){
-                    echo "<a href='edytujProdukt.php?id=" .$row['id'] ."'><button class='buttonEdit'>Edytuj produkt</button></a>";
-                }else{
-                    echo "<a href='edytujProdukt.php?id=" .$row['id'] ."'><button class='buttonEdit produktNiedostepny' disabled>Edytuj produkt</button></a>";
+                echo "<form method='POST' action='edytujProdukt.php'>";
+                echo "  <input type='hidden' name='edytujProduktId' value='" . $row['id'] . "'>";
+                echo "  <button type='submit' class='buttonEdit'>Edytuj produkt</button>";
+                echo "</form>";
+                } else {
+                    echo "<button class='buttonEdit produktNiedostepny' disabled>Edytuj produkt</button>";
                 }
-                echo "<a href='usunProdukt.php?id=" .$row['id'] ."'><button class='buttonDelete'>Usuń produkt</button></a>";
+
+                echo "<form method='POST' action='usunProdukt.php'>";
+                echo "  <input type='hidden' name='id' value='" . $row['id'] . "'>";
+                echo "  <button type='submit' class='buttonDelete'>Usuń produkt</button>";
+                echo "</form>";
+
                 echo "</div>";
-                
                 echo "</div>";
             }
             ?>

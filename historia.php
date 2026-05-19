@@ -1,6 +1,10 @@
 <?php
 include "db.php";
 
+if (!isset($_SESSION['uzytkownik_id'])) {
+    header("Location: login.php");
+}
+
 $userId = $_SESSION['uzytkownik_id'];
 ?>
 
@@ -17,7 +21,7 @@ $userId = $_SESSION['uzytkownik_id'];
     <h1>Marketplace</h1>
     <nav>
         <a href="index.php">Ogłoszenia</a>
-        <a href="Uzytkownicy.php">Użytkownicy</a>
+        <a href="uzytkownicy.php">Użytkownicy</a>
         <a href="mojeProdukty.php">Moje produkty</a>
         <a href="historia.php"><b>Historia</b></a>
         <a href="dodajProdukt.php">+ Dodaj produkt</a>

@@ -10,14 +10,19 @@ if ($_POST) {
     $opis = $_POST['opis'];
     $kategoria = $_POST['kategoria'];
     $cena = $_POST['cena'];
-    $uid = $_SESSION['uzytkownik_id'];
+    $userId = $_SESSION['uzytkownik_id'];
 
     $query = "INSERT INTO produkty (nazwa, opis, cena, kategoria_id, status, uzytkownik_id) 
-            VALUES ('$nazwa', '$opis', '$cena', $kategoria, 'dostepny', '$uid')";
+              VALUES (?, ?, ?, ?, 'dostepny', ?)";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('ssdii', $nazwa, $opis, $cena, $kategoria, $uid);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: mojeProdukty.php");
+    exit();
     
-    if (mysqli_query($conn, $query)) {
-        header("Location: index.php");
-    }
 }
 ?>
 <!DOCTYPE html>
@@ -33,7 +38,7 @@ if ($_POST) {
     <h1>Marketplace</h1>
     <nav>
         <a href="index.php">Ogłoszenia</a>
-        <a href="Uzytkownicy.php">Użytkownicy</a>
+        <a href="uzytkownicy.php">Użytkownicy</a>
         <a href="mojeProdukty.php">Moje produkty</a>
         <a href="historia.php">Historia</a>
         <a href="dodajProdukt.php"><b>+ Dodaj produkt<b></a>

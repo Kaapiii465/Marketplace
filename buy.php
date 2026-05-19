@@ -3,28 +3,48 @@ session_start();
 $conn = mysqli_connect('localhost', 'root', '', 'marketplace');
 
 
-if (isset($_SESSION['uzytkownik_id']) && isset($_GET['id'])) {
-    $id_produktu = $_GET['id'];
+if (isset($_SESSION['uzytkownik_id']) && isset($_POST['id'])) {
+    $id_produktu = $_POST['id'];
     $id_kupujacego = $_SESSION['uzytkownik_id'];
 
 
-    $query = "SELECT * FROM produkty WHERE id = $id_produktu";
-    $result = mysqli_query($conn, $query);
+    $query = "SELECT * FROM produkty WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $id_produktu);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     $array = mysqli_fetch_array($result);
+
+    if($array['status'] == "sprzedany"){
+        exit();
+    }
 
     $nazwa = $array['nazwa'];
     $opis = $array['opis'];
     $cena = $array['cena'];
-    $kategoria = $array['kategoria_id'];
+    $kategoriaId = $array['kategoria_id'];
 
-    $query2 = "INSERT INTO historia (uzytkownik_id, nazwa_produktu, opis_produktu, kategoria_id, cena, data_zakupu) 
-        VALUES ('$id_kupujacego', '$nazwa', '$opis', $kategoria, $cena, CURRENT_TIMESTAMP)";
-    mysqli_query($conn, $query2);
+    $conn->begin_transaction();
+    try{
+        $query2 = "INSERT INTO historia (uzytkownik_id, nazwa_produktu, opis_produktu, kategoria_id, cena, data_zakupu) 
+                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        $stmt2 = $conn->prepare($query2);
+        $stmt2->bind_param("issid", $id_kupujacego, $nazwa, $opis, $kategoriaId, $cena);
+        $stmt2->execute();
+        $stmt2->close();
 
+        $update = "UPDATE produkty SET status = 'sprzedany' WHERE id = ?";
+        $stmt3 = $conn->prepare($update);
+        $stmt3->bind_param('i', $id_produktu);
+        $stmt3->execute();
+        $stmt3->close();
 
-    $update = "UPDATE produkty SET status = 'sprzedany' WHERE id = $id_produktu";
-    mysqli_query($conn, $update);
+        $conn->commit();
+        
+    } catch (Exception $e){
+        $conn->rollback();
+    }
 }
 
 header("Location: index.php");

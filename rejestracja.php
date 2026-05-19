@@ -28,8 +28,8 @@ if ($_POST) {
     <h1>Marketplace</h1>
     <nav>
         <a href="index.php">Ogłoszenia</a>
-        <a href="Uzytkownicy.php">Użytkownicy</a>
-        <a href="mojeProdukty.v">Moje produkty</a>
+        <a href="uzytkownicy.php">Użytkownicy</a>
+        <a href="mojeProdukty.php">Moje produkty</a>
         <a href="historia.php">Historia</a>
         <a href="dodajProdukt.php">+ Dodaj produkt</a>
     </nav>

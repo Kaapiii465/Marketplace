@@ -1,12 +1,18 @@
 <?php
 include "db.php";
 
-if(isset($_GET['id'])){
-    $produktId = $_GET['id'];
+if (!isset($_SESSION['uzytkownik_id'])) {
+    header("Location: login.php");
+    exit();
+}
 
-    $query = "DELETE FROM `produkty` WHERE id = $produktId";
+if(isset($_POST['id'])){
+    $produktId = $_POST['id'];
 
-    $result = mysqli_query($conn, $query);
+    $query = "DELETE FROM `produkty` WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('i', $produktId);
+    $stmt->execute();
 
     header("Location: mojeProdukty.php");
 }
